@@ -1,8 +1,9 @@
 language: python
 python:
  - "3.5"
-
-pip install requests
+install:
+   - pip install -r requirements.txt
+   - pip install requests
 
 # command to run tests
 script:
