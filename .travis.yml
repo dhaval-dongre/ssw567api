@@ -2,10 +2,10 @@ language: python
 python:
  - "3.5"
 install:
-   - pip install -r requirements.txt
+   - pip install requirements
    - pip install requests
 
 # command to run tests
 script:
- - python -m unittest HW04a
+ - python3 -m unittest HW04a
  
