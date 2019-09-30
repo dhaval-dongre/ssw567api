@@ -1,42 +1,42 @@
 import requests
 import unittest
 import json
+from unittest import mock
+from unittest.mock import Mock,patch
 
 def getRepoInfo(username):
-    repoInfo={}
+    repoInfo=[]
     response=requests.get('https://api.github.com/users/'+username+'/repos')
-    
 
-    if response.status_code != 200:
-        return 'Not Exists'
-
-    repos=json.loads(response.text)
+    repos=response.json()
     
     for repo in repos:
-        url='https://api.github.com/repos/'+username+'/'+repo['name']+'/commits'
-
-        response=requests.get(url)
-
-        if response.status_code != 200:
-            repoInfo[repo['name']]=len(json.loads(response.text))
-            continue
-
-        repoInfo[repo['name']]=len(json.loads(response.text))
-
-    # print(json.dumps(repoInfo, indent = 4))
-
+        repoName = repo.get('name')
+        repoInfo.append(repoName)
     return repoInfo
+
+def getCommitCount(username,repoName):
+    response =requests.get('https://api.github.com/repos/'+username+'/'+repoName+'/commits')
+    commits = response.json()
+    return len(commits)
+
 
 class GitApiTest(unittest.TestCase):
 
-    def test_GitApiPositive(self):
-        actual=getRepoInfo('dhaval-dongre')['CS-546']
-        self.assertEqual(actual, 30, 'Unequal amount of commits '+'actual:['+str(actual)+']'+' expected:[30]')
-        
+    @mock.patch('requests.get')
+    def test_GitApiRepoInfo(self,mockVal):
+        repoInfo = [{'name': 'Test'}]
 
-    def test_GitApiNegative(self):
-        actual=getRepoInfo('dhaval-abcdef')
-        self.assertEqual(actual, 'Not Exists', 'Expected the repository to be non existent')
+        mockVal.return_value.json.return_value = repoInfo
+        response = getRepoInfo('abc')
+        self.assertEqual(response, ['Test'])
+
+    @mock.patch('requests.get')
+    def test_GitApiRepoCount(self,mockVal):
+        repocommits = [{'0': {'commit': '1'}},{'1': {'commit': '2'}},{'2': {'commit': '3'}}]
+        mockVal.return_value.json.return_value = repocommits
+        response = getCommitCount('abc', 'Test')
+        self.assertEqual(response, 3)  
         
 if __name__ == '__main__':
     unittest.main()
